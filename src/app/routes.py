@@ -1,4 +1,4 @@
-from app import ns, kb
+from src.app import ns, kb
 from flask_restplus import Resource, fields
 
 

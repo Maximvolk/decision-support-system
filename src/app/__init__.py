@@ -10,4 +10,4 @@ api = Api(app, title='Decision Support System',
 ns = api.namespace('DSS', description='Get your recommendations or enrich system knowledge-base')
 kb = KnowledgeBase()
 
-from app import routes
+from src.app import routes
