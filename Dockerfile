@@ -12,7 +12,9 @@ COPY ./Pipfile.lock ${HOME}/Pipfile.lock
 # install python, uwsgi, and supervisord
 RUN apt-get update && \
     apt-get install -y --no-install-recommends supervisor uwsgi python3 \
-        python3-pip python3-dev build-essential procps && \
+        python3-pip python3-dev build-essential procps
+
+RUN pip3 install --upgrade setuptools && \
     pip3 install --no-cache pipenv && pipenv install --system --deploy
 
 # Copy the configuration file from the current directory and paste 
