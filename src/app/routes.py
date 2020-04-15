@@ -35,29 +35,30 @@ class GetRecommendation(Resource):
 class LeaveFeedback(Resource):
     @ns.doc(body=feedback_model, required=True)
     @ns.response(204, 'Success', None)
+    @ns.response(400, 'Error', None)
     def post(self):
         data = ns.payload
-        kb.rate_recommendation(
+        status = kb.rate_recommendation(
             data['problemDescription'],
             data['recommendation'],
-            data['didHelp'])
+            data['didHelp']
+        )
 
-        return '', 204
-
-
-# @ns.route('/AddProblem')
-# class AddProblem(Resource):
-#     @ns.doc(body=problem_description_model, required=True)
-#     @ns.response(204, 'Success', None)
-#     def post(self):
-#         kb.add_problem(ns.payload['problemDescription'])
-#         return '', 204
+        if status == 1:
+            return 'Specified recommendation does not exist', 400
+        else:
+            return '', 204
 
 
 @ns.route('/AddRecommendation')
 class AddRecommendation(Resource):
     @ns.doc(body=recommendation_model, required=True)
     @ns.response(204, 'Success', None)
+    @ns.response(400, 'Error', None)
     def post(self):
-        kb.add_recommendation(ns.payload['recommendation'])
-        return '', 204
+        status = kb.add_recommendation(ns.payload['recommendation'])
+
+        if status == 1:
+            return 'Recommendation already exists', 400
+        else:
+            return '', 204

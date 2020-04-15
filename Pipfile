@@ -9,6 +9,8 @@ verify_ssl = true
 flask = "*"
 flask-restplus = "*"
 uwsgi = "*"
+elasticsearch = "*"
+werkzeug = "==0.16.0"
 
 [requires]
 python_version = "3.7"
