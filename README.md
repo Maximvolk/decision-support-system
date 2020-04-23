@@ -9,3 +9,54 @@ and tunes problem->recommendation rating (compliance rate).
 
 API documentation is powered by OpenAPI Swagger.  
 ![](demo/swagger.png)
+
+## Flask app
+
+Database connectors: `sqlite3` and
+[mysql-connector-python](https://dev.mysql.com/doc/connector-python/en/connector-python-example-cursor-select.html) 
+
+[click](https://click.palletsprojects.com/en/7.x/) for command line interface
+ 
+## docker-compose
+ 
+Start 4 containers
+1. `nginx`
+2. `elastic`
+3. `mysql`
+4. `app` - Flask app starts with uwsgi and 30 sec delay for completely start elasticsearch.
+Without delay elasticsearch is not started properly and flask app crashes with multiple errors.
+
+`mysql` and `app` use common environment file `mysql.env` for
+container variables.
+
+## Scripts
+
+`app_flask_cmd.sh` - script to execute flask commands in app container
+
+```bash
+# shell in app
+docker-compose exec app bash
+# list available flask command
+docker-compose exec app flask --help
+./app_flask_cmd.sh --help
+# migrate to last migration
+./app_flask_cmd.sh db migrate
+# current database migration version
+./app_flask_cmd.sh db version
+# update elastic cache from database
+./app_flask_cmd.sh elastic-refresh
+```
+
+```bash
+# access to mysql shell
+docker-compose exec mysql mysql -pmysqlroot
+```
+
+## Cold start
+
+```bash
+docker-compose up
+# wait 30 sec until it starts
+./app_flask_cmd.sh db migrate
+./app_flask_cmd.sh elastic-refresh
+```

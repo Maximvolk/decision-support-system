@@ -6,7 +6,7 @@ class ElasticsearchEngine(SearchEngine):
     def __init__(self, config):
         self.config = config
         self.engine = Elasticsearch(
-            f'{config.search_engine_host}:{config.search_engine_port}')
+            f'http://{config.search_engine_host}:{config.search_engine_port}')
 
     def add_to_index(self, index, id, text):
         self.engine.index(index=index, id=id, body={'description': text})
