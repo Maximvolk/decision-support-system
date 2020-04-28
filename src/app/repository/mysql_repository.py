@@ -111,7 +111,7 @@ class MySQLRepository(Repository):
                                 INNER JOIN
                                     (SELECT recommendation_id
                                      FROM recommendation
-                                     WHERE recommendation NOT IN ({}})
+                                     WHERE recommendation NOT IN ({})
                                      ORDER BY RAND() LIMIT {}) as r2
                                 ON r1.recommendation_id = r2.recommendation_id;""".format(
                                     ignore, n)

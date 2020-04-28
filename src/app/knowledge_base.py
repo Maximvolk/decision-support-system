@@ -43,6 +43,7 @@ class KnowledgeBase:
         # Limit recommendations amount prior to return
         return recommendations[:self.config.n_recommendations]
 
+    # TODO: modify rate functionality
     def rate_recommendation(self, problem, recommendation, did_help):
         recommendation_id = self.repository.get_recommendation_id(recommendation)
         if recommendation_id is None:

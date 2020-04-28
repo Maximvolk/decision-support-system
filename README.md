@@ -60,3 +60,16 @@ docker-compose up
 ./app_flask_cmd.sh db migrate
 ./app_flask_cmd.sh elastic-refresh
 ```
+
+## Evaluation
+
+DSS accuracy was evaluated according with the following metric:  
+every GetRecommendation result (5 sorted recommendations) was rated with coefficient counted as ```(5 - n + 1)/5```
+where n is position of recommendation in returned list (zero is the top one). Finally, all counted coefficient were averaged
+ (divided by their amount).    
+ 
+Final system accuracy coefficient is *0,37*.    
+
+Described metric uses only one recommendation from list (the one which was useful)
+and takes its position in the list into account. According to this 0,37 is not that small because it can mean that
+ useful recommendation was returned almost always but it could be in not in the first position. 
