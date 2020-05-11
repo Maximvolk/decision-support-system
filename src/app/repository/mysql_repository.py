@@ -46,15 +46,15 @@ class MySQLRepository(Repository):
     def add_problem(self, problem):
         with closing(self.connect()) as conn:
             with closing(conn.cursor()) as cursor:
-                cursor.execute('INSERT INTO problem (description) VALUES (?)', [problem])
+                cursor.execute('INSERT INTO problem (description) VALUES (%s)', (problem,))
             conn.commit()
         return cursor.lastrowid
 
     def get_recommendation_id(self, recommendation):
         with closing(self.connect()) as conn:
             with closing(conn.cursor()) as cursor:
-                query = 'SELECT recommendation_id FROM recommendation WHERE recommendation = ?'
-                recommendation = cursor.execute(query, [recommendation]).fetchone()
+                query = 'SELECT recommendation_id FROM recommendation WHERE recommendation = %s'
+                recommendation = cursor.execute(query, (recommendation,)).fetchone()
 
         return recommendation[0] if recommendation else None
 
@@ -87,31 +87,32 @@ class MySQLRepository(Repository):
     def get_recommendations_for_problem(self, problem_id):
         with closing(self.connect()) as conn:
             with closing(conn.cursor()) as cursor:
-                query = f'SELECT recommendation.recommendation_id, recommendation, rating FROM problem' \
-                        f'  INNER JOIN problem_recommendation' \
-                        f'      ON problem.problem_id = problem_recommendation.problem_id' \
-                        f'  INNER JOIN recommendation' \
-                        f'      ON problem_recommendation.recommendation_id = recommendation.recommendation_id' \
-                        f' WHERE problem.problem_id = {problem_id}'
+                query = f'SELECT problem.problem_id, recommendation.recommendation_id, recommendation, rating ' \
+                        f'  FROM problem' \
+                        f'      INNER JOIN problem_recommendation' \
+                        f'          ON problem.problem_id = problem_recommendation.problem_id' \
+                        f'      INNER JOIN recommendation' \
+                        f'          ON problem_recommendation.recommendation_id = recommendation.recommendation_id' \
+                        f'  WHERE problem.problem_id = {problem_id}'
                 cursor.execute(query)
                 recommendations = cursor.fetchall()
 
         # Sort by rating descending
-        recommendations.sort(key=lambda item: item[2], reverse=True)
+        recommendations.sort(key=lambda item: item[3], reverse=True)
 
-        return [item[1] for item in recommendations]
+        return [[item[0], item[1], item[2]] for item in recommendations]
 
-    def get_n_random_recommendations(self, n, recommendations_to_ignore):
+    def get_n_random_recommendations(self, n, recommendations_ids_to_ignore):
         with closing(self.connect()) as conn:
             with closing(conn.cursor()) as cursor:
-                # Ignore already selected recommendations to avoid duplicates
-                if len(recommendations_to_ignore) > 0:
-                    ignore = ', '.join([f'\'{str(item)}\'' for item in recommendations_to_ignore])
+                # Ignore already selected recommendations to avoid duplicatses
+                if len(recommendations_ids_to_ignore) > 0:
+                    ignore = ', '.join([str(item) for item in recommendations_ids_to_ignore])
                     query = """SELECT * FROM recommendation as r1
                                 INNER JOIN
                                     (SELECT recommendation_id
                                      FROM recommendation
-                                     WHERE recommendation NOT IN ({})
+                                     WHERE recommendation_id NOT IN ({})
                                      ORDER BY RAND() LIMIT {}) as r2
                                 ON r1.recommendation_id = r2.recommendation_id;""".format(
                                     ignore, n)
@@ -126,19 +127,15 @@ class MySQLRepository(Repository):
                 cursor.execute(query)
                 recommendations = cursor.fetchall()
 
-        return [item[1] for item in recommendations]
+        # Return None for problem_id because problem will not be rated correctly as it was found randomly
+        return [[None, item[0], item[1]] for item in recommendations]
 
-    def get_problem_recommendation_rating(self, problem, recommendation):
+    def get_problem_recommendation_rating(self, problem_id, recommendation_id):
         with closing(self.connect()) as conn:
             with closing(conn.cursor()) as cursor:
-                query = """SELECT rating FROM problem
-                           INNER JOIN problem_recommendation
-                             ON problem.problem_id = problem_recommendation.problem_id
-                           INNER JOIN recommendation
-                             ON recommendation.recommendation_id = problem_recommendation.recommendation_id
-                           WHERE description = '%s' AND recommendation = '%s'"""
-                params = (problem, recommendation)
-                cursor.execute(query, params)
+                query = f'SELECT rating FROM problem_recommendation' \
+                        f'  WHERE problem_id = {problem_id} AND recommendation_id = {recommendation_id}'
+                cursor.execute(query)
                 rating = cursor.fetchone()
 
         return rating[0] if rating else None
@@ -149,7 +146,7 @@ class MySQLRepository(Repository):
                 query = f'UPDATE problem_recommendation SET rating = {rating}' \
                         f'  WHERE problem_id = {problem_id} AND recommendation_id = {recommendation_id}'
                 cursor.execute(query)
-        conn.commit()
+            conn.commit()
 
     def add_problem_recommendation_rating(self, problem_id, recommendation_id, rating):
         with closing(self.connect()) as conn:

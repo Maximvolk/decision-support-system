@@ -131,17 +131,12 @@ class SQLiteRepository(Repository):
 
         return [item[1] for item in recommendations]
 
-    def get_problem_recommendation_rating(self, problem, recommendation):
+    def get_problem_recommendation_rating(self, problem_id, recommendation_id):
         with sqlite3.connect(self.db_name) as conn:
             with closing(conn.cursor()) as cursor:
-                query = f'SELECT rating FROM problem' \
-                        f' INNER JOIN problem_recommendation' \
-                        f'  ON problem.problem_id = problem_recommendation.problem_id ' \
-                        f' INNER JOIN recommendation ' \
-                        f'  ON recommendation.recommendation_id = problem_recommendation.recommendation_id' \
-                        f'    WHERE description = ? AND recommendation = ?'
-                params = [problem, recommendation]
-                rating = cursor.execute(query, params).fetchone()
+                query = f'SELECT rating FROM problem_recommendation' \
+                        f'  WHERE problem_id = {problem_id} AND recommendation_id = {recommendation_id}'
+                rating = cursor.execute(query).fetchone()
 
         return rating[0] if rating else None
 

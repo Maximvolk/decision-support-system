@@ -32,29 +32,37 @@ class KnowledgeBase:
                 break
 
         # Remove duplicates
-        recommendations = list(dict.fromkeys(recommendations).keys())
+        used_recommendations_ids = []
+        _recommendations = []
+
+        for recommendation in recommendations:
+            if recommendation[1] not in used_recommendations_ids:
+                used_recommendations_ids.append(recommendation[1])
+                _recommendations.append(recommendation)
+
+        recommendations = _recommendations
 
         # Complement with random recommendations if those retrieved is not enough
         if len(recommendations) < self.config.n_recommendations:
             n = self.config.n_recommendations - len(recommendations)
-            _recommendations = self.repository.get_n_random_recommendations(n, recommendations)
+            _recommendations = self.repository.get_n_random_recommendations(n, used_recommendations_ids)
             recommendations.extend(_recommendations)
 
         # Limit recommendations amount prior to return
         return recommendations[:self.config.n_recommendations]
 
-    # TODO: modify rate functionality
     def rate_recommendation(self, problem, recommendation, did_help):
-        recommendation_id = self.repository.get_recommendation_id(recommendation)
-        if recommendation_id is None:
+        problems_recommendations_map = self.infer(problem)
+        problem_id, recommendation_id = None, None
+
+        for item in problems_recommendations_map:
+            if item[2] == recommendation:
+                problem_id, recommendation_id = item[0], item[1]
+
+        if recommendation_id is None or problem_id is None:
             return 1
 
-        problem_id = self.repository.get_problem_id(problem)
-        if problem_id is None and did_help:
-            problem_id = self.repository.add_problem(problem)
-            self.search_engine.add_to_index(self.config.db_name, problem_id, problem)
-
-        rating = self.repository.get_problem_recommendation_rating(problem, recommendation)
+        rating = self.repository.get_problem_recommendation_rating(problem_id, recommendation_id)
 
         if rating:
             new_rating = rating + 1 if did_help else rating - 1

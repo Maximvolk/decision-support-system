@@ -42,11 +42,11 @@ class Repository(ABC):
         pass
 
     @abstractmethod
-    def get_n_random_recommendations(self, n, recommendations_to_ignore):
+    def get_n_random_recommendations(self, n, recommendations_ids_to_ignore):
         pass
 
     @abstractmethod
-    def get_problem_recommendation_rating(self, problem, recommendation):
+    def get_problem_recommendation_rating(self, problem_id, recommendation_id):
         pass
 
     @abstractmethod

@@ -28,7 +28,7 @@ class GetRecommendation(Resource):
     @ns.response(200, 'Success', recommendation_model)
     def post(self):
         recommendations = kb.infer(ns.payload['problemDescription'])
-        return [{'recommendation': r} for r in recommendations]
+        return [{'recommendation': r[2]} for r in recommendations]
 
 
 @ns.route('/LeaveFeedback')
