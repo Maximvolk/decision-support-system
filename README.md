@@ -72,4 +72,31 @@ Final system accuracy coefficient is *0,37*.
 
 Described metric uses only one recommendation from list (the one which was useful)
 and takes its position in the list into account. According to this 0,37 is not that small because it can mean that
- useful recommendation was returned almost always but it could be in not in the first position. 
+ useful recommendation was returned almost always but it could be in not in the first position.
+ 
+## API E2E test with Cypress
+
+Install node
+
+```bash
+yarn install
+# or
+npm install
+```
+
+Start application
+```bash
+docker-compose up
+```
+
+Run cypress test
+```bash
+yarn run cypress run
+# or
+npm run cypress run
+
+# To open tests with interactive GUI
+yarn run cypress open
+# or
+npm run cypress open
+``` 
